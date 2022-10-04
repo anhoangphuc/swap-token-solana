@@ -19,7 +19,7 @@ async function generateToken(
         freezeAuthority.publicKey,
         9,
     );
-    console.log(`Create MOVE token success at address ${mint.toBase58()}`);
+    console.log(`Create MOVE token success at address ${mint.toBase58()} on network ${network}`);
     await saveContract(network, 'MOVE', mint.toBase58());
 }
 
@@ -27,6 +27,5 @@ async function generateToken(
     const network = process.env.NETWORK;
     const connection = await getConnection(network);
     const payer = await getKeypair(0);
-    await airdropSol(payer, connection);
     await  generateToken(payer, payer, payer, connection, network);
 })()
