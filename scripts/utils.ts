@@ -1,6 +1,7 @@
 import {clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL} from "@solana/web3.js";
 import fs from "fs";
-import * as path from "path";
+import path from "path";
+import bs58 from "bs58";
 
 export async function getConnection(network: string): Promise<Connection> {
     const commitment = 'confirmed';
@@ -49,4 +50,22 @@ export async function saveContract(network: string, contract: string, address: s
     addresses[network][contract] = address;
     fs.writeFileSync(path.join(__dirname, '../data/contract_addresses.json'),
         JSON.stringify(addresses, null, "    "));
+}
+
+export function getAccounts() {
+    let json;
+    try {
+        json = fs.readFileSync(path.join(__dirname, '../data/accounts.json'), 'utf-8') || '{}';
+    } catch {
+        json = '{}';
+    }
+    return JSON.parse(json);
+}
+
+export async function saveAccount(keypair: Keypair, index: number) {
+    const accounts = getAccounts();
+    const accountIndex = `account${index}`;
+    accounts[accountIndex] = bs58.encode(keypair.secretKey);
+    fs.writeFileSync(path.join(__dirname, '../data/accounts.json'),
+        JSON.stringify(accounts, null, "    "));
 }
