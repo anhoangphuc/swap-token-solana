@@ -25,7 +25,8 @@ async function airdropSol(payer: Keypair, connection: Connection) {
 
 (async function main() {
     const payer = Keypair.generate();
-    const connection =  await getConnection();
+    const network = process.env.NETWORK;
+    const connection =  await getConnection(network);
     console.log(`payer address is ${payer.publicKey}`);
     await airdropSol(payer, connection);
 })()
