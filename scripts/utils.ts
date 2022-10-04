@@ -80,3 +80,7 @@ export async function saveAccount(keypair: Keypair, index: number) {
     fs.writeFileSync(path.join(__dirname, '../data/accounts.json'),
         JSON.stringify(accounts, null, "    "));
 }
+
+export function sleep(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
