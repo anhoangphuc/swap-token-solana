@@ -36,7 +36,7 @@ export async function airdropSol(payer: Keypair, connection: Connection) {
 export function getContracts() {
     let json;
     try {
-        json = fs.readFileSync(path.join(__dirname, '../contract_addresses.json'), 'utf-8') || '{}';
+        json = fs.readFileSync(path.join(__dirname, '../data/contract_addresses.json'), 'utf-8') || '{}';
     } catch {
         json = '{}';
     }
@@ -47,6 +47,6 @@ export async function saveContract(network: string, contract: string, address: s
     const addresses = getContracts();
     addresses[network] = addresses[network] || {};
     addresses[network][contract] = address;
-    fs.writeFileSync(path.join(__dirname, '../contract_addresses.json'),
+    fs.writeFileSync(path.join(__dirname, '../data/contract_addresses.json'),
         JSON.stringify(addresses, null, "    "));
 }
