@@ -1,7 +1,7 @@
 import { createMint } from "@solana/spl-token";
 import { Connection, Keypair} from "@solana/web3.js";
 import dotenv from "dotenv";
-import {airdropSol, getConnection, saveContract} from "./utils";
+import {airdropSol, getConnection, getKeypair, saveContract} from "./utils";
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ async function generateToken(
 (async function main() {
     const network = process.env.NETWORK;
     const connection = await getConnection(network);
-    const payer = Keypair.generate();
+    const payer = await getKeypair(0);
     await airdropSol(payer, connection);
     await  generateToken(payer, payer, payer, connection, network);
 })()
