@@ -1,7 +1,8 @@
-import {clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL} from "@solana/web3.js";
+import {clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey} from "@solana/web3.js";
 import fs from "fs";
 import path from "path";
 import bs58 from "bs58";
+import { getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 
 export async function getConnection(network: string): Promise<Connection> {
     const commitment = 'confirmed';
@@ -32,6 +33,30 @@ export async function airdropSol(payer: Keypair, connection: Connection) {
     console.log(`Airdrop success to account ${payer.publicKey}`);
     const balanceAccount = await connection.getBalance(payer.publicKey);
     console.log(`Balance of account ${payer.publicKey} is ${balanceAccount}`);
+}
+
+export async function mintNewTokenForAccount(
+    payer: Keypair,
+    mint: PublicKey,
+    receiverPubkey: PublicKey,
+    connection: Connection
+) {
+    console.log(mint.toBase58());
+    const tokenAccount = await getOrCreateAssociatedTokenAccount(
+        connection,
+        payer,
+        mint,
+        receiverPubkey,
+    );
+    console.log(`Token account for account ${receiverPubkey.toBase58()} and token ${mint.toBase58()} is ${tokenAccount.address.toBase58()}`);
+    await mintTo(
+        connection,
+        payer,
+        mint,
+        tokenAccount.address,
+        payer,  //payer is mint authority too for our cases
+        1000000000,
+    );
 }
 
 export function getContracts() {
