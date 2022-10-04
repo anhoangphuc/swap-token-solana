@@ -67,6 +67,12 @@ export function getAccounts(index?: number) {
     }
 }
 
+export async function getKeypair(index: number): Promise<Keypair> {
+    const secretKey = await getAccounts(index);
+    const keypair = Keypair.fromSecretKey(bs58.decode(secretKey));
+    return keypair;
+}
+
 export async function saveAccount(keypair: Keypair, index: number) {
     const accounts = getAccounts();
     const accountIndex = `account${index}`;

@@ -1,5 +1,5 @@
 import { Keypair } from "@solana/web3.js";
-import {airdropSol, getAccounts, getConnection, getContracts, saveAccount} from "./utils";
+import {airdropSol, getAccounts, getConnection, getContracts, getKeypair, saveAccount} from "./utils";
 import bs58 from "bs58";
 import dotenv from "dotenv";
 dotenv.config();
@@ -16,8 +16,7 @@ async function airdropFiveAccounts() {
     const network = process.env.NETWORK;
     const connection = await getConnection(network);
     for (let i = 0; i < 5; i++) {
-        const secretKey = await getAccounts(i);
-        const keypair = Keypair.fromSecretKey(bs58.decode(secretKey));
+        const keypair = await getKeypair(i);
         await airdropSol(keypair, connection);
     }
     console.log(`Airdrop 5 account success`);
