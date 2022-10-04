@@ -1,4 +1,4 @@
-import { clusterApiUrl, Connection } from "@solana/web3.js";
+import {clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL} from "@solana/web3.js";
 import fs from "fs";
 import * as path from "path";
 
@@ -13,6 +13,24 @@ export async function getConnection(network: string): Promise<Connection> {
         throw Error(`Network config errored ${network}`);
     }
     return connection;
+}
+
+export async function airdropSol(payer: Keypair, connection: Connection) {
+    const airdropSignature = await connection.requestAirdrop(
+        payer.publicKey,
+        LAMPORTS_PER_SOL,
+    );
+
+    const latestBLockhash = await  connection.getLatestBlockhash();
+
+    await  connection.confirmTransaction({
+        blockhash: latestBLockhash.blockhash,
+        lastValidBlockHeight: latestBLockhash.lastValidBlockHeight,
+        signature: airdropSignature,
+    });
+    console.log(`Airdrop success to account ${payer.publicKey}`);
+    const balanceAccount = await connection.getBalance(payer.publicKey);
+    console.log(`Balance of account ${payer.publicKey} is ${balanceAccount}`);
 }
 
 export function getContracts() {
