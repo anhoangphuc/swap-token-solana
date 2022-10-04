@@ -93,15 +93,17 @@ export function getAccounts(index?: number) {
 }
 
 export async function getKeypair(index: number): Promise<Keypair> {
-    const secretKey = await getAccounts(index);
-    const keypair = Keypair.fromSecretKey(bs58.decode(secretKey));
+    const account = await getAccounts(index);
+    const keypair = Keypair.fromSecretKey(bs58.decode(account['secretKey']));
     return keypair;
 }
 
 export async function saveAccount(keypair: Keypair, index: number) {
     const accounts = getAccounts();
     const accountIndex = `account${index}`;
-    accounts[accountIndex] = bs58.encode(keypair.secretKey);
+    accounts[accountIndex] = {};
+    accounts[accountIndex]['secretKey'] = bs58.encode(keypair.secretKey);
+    accounts[accountIndex]['pubKey'] = keypair.publicKey.toBase58();
     fs.writeFileSync(path.join(__dirname, '../data/accounts.json'),
         JSON.stringify(accounts, null, "    "));
 }
