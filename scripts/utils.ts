@@ -52,14 +52,19 @@ export async function saveContract(network: string, contract: string, address: s
         JSON.stringify(addresses, null, "    "));
 }
 
-export function getAccounts() {
+export function getAccounts(index?: number) {
     let json;
     try {
         json = fs.readFileSync(path.join(__dirname, '../data/accounts.json'), 'utf-8') || '{}';
     } catch {
         json = '{}';
     }
-    return JSON.parse(json);
+    const accounts = JSON.parse(json) ;
+    if (index === undefined || index === null) {
+        return accounts;
+    } else {
+        return accounts[`account${index}`];
+    }
 }
 
 export async function saveAccount(keypair: Keypair, index: number) {
