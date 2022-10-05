@@ -30,9 +30,7 @@ export async function airdropSol(payer: Keypair, connection: Connection) {
         lastValidBlockHeight: latestBLockhash.lastValidBlockHeight,
         signature: airdropSignature,
     });
-    console.log(`Airdrop success to account ${payer.publicKey}`);
     const balanceAccount = await connection.getBalance(payer.publicKey);
-    console.log(`Balance of account ${payer.publicKey} is ${balanceAccount}`);
 }
 
 export async function mintNewTokenForAccount(
@@ -48,7 +46,6 @@ export async function mintNewTokenForAccount(
         mint,
         receiverPubkey,
     );
-    console.log(`Token account for account ${receiverPubkey.toBase58()} and token ${mint.toBase58()} is ${tokenAccount.address.toBase58()}`);
     await mintTo(
         connection,
         payer,
