@@ -8,7 +8,7 @@ pub mod swap_token {
     use anchor_spl::token;
     use super::*;
 
-    const SWAP_PDA_SEED: &[u8] = b"swap_remitano";
+    const SWAP_PDA_SEED: &[u8] = b"swap_rem";
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let state = &mut ctx.accounts.state;
