@@ -1,5 +1,5 @@
 import { Keypair } from "@solana/web3.js";
-import {airdropSol, getAccounts, getConnection, getContracts, getKeypair, saveAccount, sleep} from "./utils";
+import {airdropSol, getAccounts, getConnection, getContracts, getKeypair, saveAccount, sleep} from "../utils";
 import bs58 from "bs58";
 import dotenv from "dotenv";
 dotenv.config();
