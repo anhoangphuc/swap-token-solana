@@ -1,4 +1,4 @@
-import {airdropSol, getConnection, getKeypair, sleep} from "./utils";
+import {airdropSol, getConnection, getKeypair, sleep} from "../utils";
 import dotenv from "dotenv";
 
 dotenv.config();
