@@ -14,6 +14,9 @@ pub mod swap_token {
         let state = &mut ctx.accounts.state;
         state.user_puller = ctx.accounts.user_puller.key().clone();
         state.move_token = ctx.accounts.move_token.key().clone();
+
+        let move_pool = &mut ctx.accounts.move_pool;
+        move_pool.balance = 0;
         Ok(())
     }
 }
@@ -27,6 +30,15 @@ pub struct Initialize<'info> {
         space = 8 + State::LEN
     )]
     pub state: Account<'info, State>,
+
+    #[account(
+        init,
+        seeds = ["move_pool".as_bytes()],
+        bump,
+        payer = user_puller,
+        space = 8 + MovePool::LEN
+    )]
+    pub move_pool: Account<'info, MovePool>,
 
     #[account(mut)]
     pub user_puller: Signer<'info>,
@@ -47,4 +59,15 @@ pub struct State {
 
 impl State {
     pub const LEN: usize = 32 + 32;
+}
+
+#[account]
+#[derive(Default)]
+pub struct MovePool {
+    //Balance of move user staked
+    balance: u64,
+}
+
+impl MovePool {
+    pub const LEN: usize = 8;
 }
