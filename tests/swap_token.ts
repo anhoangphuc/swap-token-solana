@@ -1,11 +1,11 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { SwapToken } from "../target/types/swap_token";
-import {createMint} from "@solana/spl-token";
+import { createMint } from "@solana/spl-token";
 import {airdropSol} from "../utils";
 import base58 from "bs58";
-import base = Mocha.reporters.base;
 import * as assert from "assert";
+import {Keypair, PublicKey} from "@solana/web3.js";
 
 describe("swap_token", () => {
   const provider = anchor.AnchorProvider.local();
@@ -18,7 +18,10 @@ describe("swap_token", () => {
   it("Is initialized!", async () => {
     // Add your test here.
     const user = anchor.web3.Keypair.generate();
-    const stateAccount = anchor.web3.Keypair.generate();
+    const [stateAccount, bump] = await PublicKey.findProgramAddress(
+        [Buffer.from(anchor.utils.bytes.utf8.encode("swap_rem"))],
+        program.programId,
+    )
     await airdropSol(user, provider.connection);
 
     const mint = await createMint(
@@ -34,12 +37,12 @@ describe("swap_token", () => {
           userPuller: user.publicKey,
           moveToken: mint,
           systemProgram: anchor.web3.SystemProgram.programId,
-          state: stateAccount.publicKey,
+          state: stateAccount,
         })
-        .signers([user, stateAccount])
+        .signers([user])
         .rpc();
 
-    const state = await program.account.state.fetch(stateAccount.publicKey);
+    const state = await program.account.state.fetch(stateAccount);
     const moveToken = state.moveToken;
     assert.equal(mint.toBase58(), base58.encode(moveToken.toBytes()));
   });

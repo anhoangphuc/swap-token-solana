@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, TokenAccount};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 
 declare_id!("HyLqP2saUKjQkesmGau9zwRgexPRbWxVq4dDU2KDgabe");
 
@@ -20,7 +20,12 @@ pub mod swap_token {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(init, payer = user_puller, space = 8 + State::LEN)]
+    #[account(init,
+        seeds = ["swap_rem".as_bytes()],
+        bump,
+        payer = user_puller,
+        space = 8 + State::LEN
+    )]
     pub state: Account<'info, State>,
 
     #[account(mut)]
