@@ -49,9 +49,8 @@ describe("swap_token", () => {
 
     const state = await program.account.state.fetch(stateAccount);
     const moveToken = state.moveToken;
+    const balance = state.balance;
     assert.equal(mint.toBase58(), base58.encode(moveToken.toBytes()));
-
-    const movePoolAccount = await program.account.movePool.fetch(movePool);
-    assert.equal(movePoolAccount.balance, 0);
+    assert.equal(balance, 0);
   });
 });

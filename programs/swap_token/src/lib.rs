@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 
 declare_id!("HyLqP2saUKjQkesmGau9zwRgexPRbWxVq4dDU2KDgabe");
 
@@ -14,9 +14,21 @@ pub mod swap_token {
         let state = &mut ctx.accounts.state;
         state.user_puller = ctx.accounts.user_puller.key().clone();
         state.move_token = ctx.accounts.move_token.key().clone();
+        state.balance = 0;
+        Ok(())
+    }
 
-        let move_pool = &mut ctx.accounts.move_pool;
-        move_pool.balance = 0;
+    pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.user_stake_token.to_account_info(),
+            to: ctx.accounts.move_pool.to_account_info(),
+            authority: ctx.accounts.user_stake.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_ctx, amount)?;
+        let state = &mut ctx.accounts.state;
+        state.balance += amount;
         Ok(())
     }
 }
@@ -47,6 +59,26 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct Stake<'info> {
+    #[account(mut)]
+    pub move_pool: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub state: Account<'info, State>,
+
+    #[account(mut)]
+    pub user_stake_token: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub user_stake: Signer<'info>,
+
+    #[account(mut)]
+    pub move_token: Account<'info, Mint>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 #[derive(Default)]
 pub struct State {
@@ -55,19 +87,20 @@ pub struct State {
 
     //The token address user will trade sol for
     move_token: Pubkey,
+
+    //Balance of move_token;
+    balance: u64,
 }
 
 impl State {
-    pub const LEN: usize = 32 + 32;
+    pub const LEN: usize = 32 + 32 + 8;
 }
 
 #[account]
 #[derive(Default)]
 pub struct MovePool {
-    //Balance of move user staked
-    balance: u64,
 }
 
 impl MovePool {
-    pub const LEN: usize = 8;
+    pub const LEN: usize = 0;
 }
