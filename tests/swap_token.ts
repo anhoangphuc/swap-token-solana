@@ -224,6 +224,7 @@ describe("swap_token", () => {
           puller.publicKey,
       );
       const oldMoveBalance = pullerTokenAccount.amount;
+      const oldBalanceState= (await program.account.state.fetch(stateAccount)).balance;
       await program.methods.withdraw(new anchor.BN(1))
           .accounts({
               movePool: movePoolAccount,
@@ -242,7 +243,9 @@ describe("swap_token", () => {
           puller.publicKey,
       );
       const newMoveBalance = pullerTokenAccount.amount;
+      const newBalanceState= (await program.account.state.fetch(stateAccount)).balance;
       assert.equal(1, newMoveBalance - oldMoveBalance);
+      assert.equal(1, oldBalanceState - newBalanceState);
   })
 
     it(`Withdraw when puller is not correct`, async () => {
