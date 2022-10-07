@@ -6,7 +6,7 @@ import {airdropSol, mintNewTokenForAccount} from "../utils";
 import base58 from "bs58";
 import * as assert from "assert";
 import {PublicKey} from "@solana/web3.js";
-import {expect} from "chai";
+import {expect, use} from "chai";
 
 describe("swap_token", () => {
   const provider = anchor.AnchorProvider.local();
@@ -147,5 +147,37 @@ describe("swap_token", () => {
 
     const newSolBalance = await provider.connection.getBalance(movePoolAccount);
     assert.equal(newSolBalance - oldSolBalance, amount);
+  })
+
+  it(`Withdraw`, async () => {
+      const puller = anchor.web3.Keypair.generate();
+      await airdropSol(puller, provider.connection);
+      const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+      let pullerTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          puller.publicKey,
+      );
+      const oldMoveBalance = pullerTokenAccount.amount;
+      await program.methods.withdraw(new anchor.BN(1))
+          .accounts({
+              movePool: movePoolAccount,
+              state: stateAccount,
+              puller: puller.publicKey,
+              pullerTokenAccount: pullerTokenAccount.address,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([puller])
+          .rpc();
+      pullerTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          puller.publicKey,
+      );
+      const newMoveBalance = pullerTokenAccount.amount;
+      assert.equal(1, newMoveBalance - oldMoveBalance);
   })
 });
