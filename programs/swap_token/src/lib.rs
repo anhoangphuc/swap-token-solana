@@ -46,6 +46,9 @@ pub mod swap_token {
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
         token::transfer(cpi_ctx, 10)?;
+
+        let state = &mut ctx.accounts.state;
+        state.balance -= 10;
         Ok(())
     }
 }

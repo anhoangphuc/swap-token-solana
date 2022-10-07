@@ -6,6 +6,7 @@ import {airdropSol, mintNewTokenForAccount} from "../utils";
 import base58 from "bs58";
 import * as assert from "assert";
 import {PublicKey} from "@solana/web3.js";
+import {expect} from "chai";
 
 describe("swap_token", () => {
   const provider = anchor.AnchorProvider.local();
@@ -138,5 +139,8 @@ describe("swap_token", () => {
           swapper.publicKey,
       );
     assert.equal(swapperTokenAccount1.amount, 10);
+
+    const state = await program.account.state.fetch(stateAccount);
+    assert.equal(state.balance, 1000000000 - 10);
   })
 });
