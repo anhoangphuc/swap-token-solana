@@ -5,6 +5,7 @@ declare_id!("HyLqP2saUKjQkesmGau9zwRgexPRbWxVq4dDU2KDgabe");
 
 #[program]
 pub mod swap_token {
+    use anchor_lang::system_program;
     use anchor_spl::token;
     use super::*;
 
@@ -28,6 +29,40 @@ pub mod swap_token {
         token::transfer(cpi_ctx, amount)?;
         let state = &mut ctx.accounts.state;
         state.balance += amount;
+        Ok(())
+    }
+
+    pub fn swap(ctx: Context<Swap>, amount: u64) -> Result<()> {
+        let moveAmount = amount * 10;
+        //Transfer move from move_pool to swapper token account
+        let (_pda, bump) = Pubkey::find_program_address(&["swap_rem".as_bytes()], ctx.program_id);
+        let seeds = &[
+            "swap_rem".as_bytes(),
+            &[bump]
+        ];
+        let signer = &[&seeds[..]];
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.move_pool.to_account_info(),
+            to: ctx.accounts.swapper_token_account.to_account_info(),
+            authority: ctx.accounts.state.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+        token::transfer(cpi_ctx, moveAmount)?;
+
+
+        //Update balance of move token
+        let state = &mut ctx.accounts.state;
+        state.balance -= moveAmount;
+
+        let cpi_accounts = system_program::Transfer {
+            from: ctx.accounts.swapper.to_account_info(),
+            to: ctx.accounts.move_pool.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.system_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        system_program::transfer(cpi_ctx, amount)?;
+
         Ok(())
     }
 }
@@ -89,6 +124,33 @@ pub struct Stake<'info> {
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
+
+#[derive(Accounts)]
+pub struct Swap<'info> {
+    #[account(
+        mut,
+        seeds = ["move_pool".as_bytes()],
+        bump,
+    )]
+    pub move_pool: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        seeds = ["swap_rem".as_bytes()],
+        bump,
+    )]
+    pub state: Account<'info, State>,
+
+    #[account(mut)]
+    swapper: Signer<'info>,
+
+    #[account(mut)]
+    swapper_token_account: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
 
 #[account]
 #[derive(Default)]
