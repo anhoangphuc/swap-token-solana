@@ -32,7 +32,8 @@ pub mod swap_token {
         Ok(())
     }
 
-    pub fn swap(ctx: Context<Swap>) -> Result<()> {
+    pub fn swap(ctx: Context<Swap>, amount: u64) -> Result<()> {
+        let moveAmount = amount * 10;
         //Transfer move from move_pool to swapper token account
         let (_pda, bump) = Pubkey::find_program_address(&["swap_rem".as_bytes()], ctx.program_id);
         let seeds = &[
@@ -47,12 +48,12 @@ pub mod swap_token {
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-        token::transfer(cpi_ctx, 10)?;
+        token::transfer(cpi_ctx, moveAmount)?;
 
 
         //Update balance of move token
         let state = &mut ctx.accounts.state;
-        state.balance -= 10;
+        state.balance -= moveAmount;
 
         let cpi_accounts = system_program::Transfer {
             from: ctx.accounts.swapper.to_account_info(),
@@ -60,7 +61,7 @@ pub mod swap_token {
         };
         let cpi_program = ctx.accounts.system_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        system_program::transfer(cpi_ctx, 100)?;
+        system_program::transfer(cpi_ctx, amount)?;
 
         Ok(())
     }

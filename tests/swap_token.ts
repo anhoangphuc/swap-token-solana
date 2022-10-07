@@ -120,8 +120,9 @@ describe("swap_token", () => {
           swapper.publicKey,
       );
       const oldSolBalance = await provider.connection.getBalance(movePoolAccount);
+      const amount = 1000;
 
-      await program.methods.swap()
+      await program.methods.swap(new anchor.BN(amount))
           .accounts({
               movePool: movePoolAccount,
               state: stateAccount,
@@ -139,12 +140,12 @@ describe("swap_token", () => {
           mint,
           swapper.publicKey,
       );
-    assert.equal(swapperTokenAccount1.amount, 10);
+    assert.equal(swapperTokenAccount1.amount, amount * 10);
 
     const state = await program.account.state.fetch(stateAccount);
-    assert.equal(state.balance, 1000000000 - 10);
+    assert.equal(state.balance, 1000000000 - amount * 10);
 
     const newSolBalance = await provider.connection.getBalance(movePoolAccount);
-    assert.equal(newSolBalance - oldSolBalance, 100);
+    assert.equal(newSolBalance - oldSolBalance, amount);
   })
 });
