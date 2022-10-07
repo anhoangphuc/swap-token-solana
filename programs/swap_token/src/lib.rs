@@ -37,6 +37,13 @@ pub mod swap_token {
     pub fn swap(ctx: Context<Swap>, amount: u64) -> Result<()> {
         let move_amount = amount * 10;
         //Transfer move from move_pool to swapper token account
+
+        // Update balance of move token
+        let state = &mut ctx.accounts.state;
+        if state.balance < move_amount {
+            return err!(ErrorCode::NotEnoughMove);
+        }
+        state.balance -= move_amount;
         let (_pda, bump) = Pubkey::find_program_address(&["swap_rem".as_bytes()], ctx.program_id);
         let seeds = &[
             "swap_rem".as_bytes(),
@@ -52,10 +59,6 @@ pub mod swap_token {
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
         token::transfer(cpi_ctx, move_amount)?;
 
-
-        // Update balance of move token
-        let state = &mut ctx.accounts.state;
-        state.balance -= move_amount;
 
         //Transfer SOL to puller
         let cpi_accounts = system_program::Transfer {
@@ -76,6 +79,12 @@ pub mod swap_token {
             &[bump]
         ];
 
+        let state = &mut ctx.accounts.state;
+        if state.balance < move_amount {
+            return err!(ErrorCode::NotEnoughMove);
+        }
+        state.balance -= move_amount;
+
         let signer = &[&seeds[..]];
 
         //Transfer move_amount to puller
@@ -88,9 +97,6 @@ pub mod swap_token {
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
             token::transfer(cpi_ctx, move_amount)?;
-
-            let state = &mut ctx.accounts.state;
-            state.balance -= move_amount;
         }
 
         Ok(())
@@ -236,4 +242,10 @@ pub struct State {
 
 impl State {
     pub const LEN: usize = 32 + 32 + 32 + 8;
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Not enough move")]
+    NotEnoughMove,
 }

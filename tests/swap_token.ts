@@ -6,7 +6,6 @@ import {airdropSol, mintNewTokenForAccount} from "../utils";
 import base58 from "bs58";
 import * as assert from "assert";
 import {PublicKey} from "@solana/web3.js";
-import {expect, use} from "chai";
 
 describe("swap_token", () => {
   const provider = anchor.AnchorProvider.local();
@@ -64,6 +63,38 @@ describe("swap_token", () => {
 
   });
 
+  it(`User swap when not enough move`, async () => {
+      const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+
+      const swapper = anchor.web3.Keypair.generate();
+      await airdropSol(swapper, provider.connection);
+      const swapperTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          swapper.publicKey,
+      );
+      const amount = 1000;
+
+      try {
+          await program.methods.swap(new anchor.BN(amount))
+              .accounts({
+                  movePool: movePoolAccount,
+                  state: stateAccount,
+                  swapper: swapper.publicKey,
+                  swapperTokenAccount: swapperTokenAccount.address,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                  systemProgram: anchor.web3.SystemProgram.programId,
+                  puller: user.publicKey,
+              })
+              .signers([swapper])
+              .rpc();
+      } catch (e) {
+          assert.equal("Not enough move", e.error.errorMessage);
+      }
+
+  })
+
   it(`User stake success`, async () => {
       const staker = anchor.web3.Keypair.generate();
       const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
@@ -106,6 +137,38 @@ describe("swap_token", () => {
           staker.publicKey,
       );
       assert.equal(userStakeToken1.amount, 1000000000);
+  })
+
+  it(`User swap when puller is not correct`, async () => {
+      const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+
+      const swapper = anchor.web3.Keypair.generate();
+      await airdropSol(swapper, provider.connection);
+      const swapperTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          swapper.publicKey,
+      );
+      const amount = 1000;
+
+      try {
+          await program.methods.swap(new anchor.BN(amount))
+              .accounts({
+                  movePool: movePoolAccount,
+                  state: stateAccount,
+                  swapper: swapper.publicKey,
+                  swapperTokenAccount: swapperTokenAccount.address,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                  systemProgram: anchor.web3.SystemProgram.programId,
+                  puller: swapper.publicKey,
+              })
+              .signers([swapper])
+              .rpc();
+      } catch (e) {
+          assert.equal(e.error.errorMessage, "A raw constraint was violated");
+          assert.equal(e.error.origin, "puller");
+      }
   })
 
   it('User swap success', async () => {
@@ -161,6 +224,7 @@ describe("swap_token", () => {
           puller.publicKey,
       );
       const oldMoveBalance = pullerTokenAccount.amount;
+      const oldBalanceState= (await program.account.state.fetch(stateAccount)).balance;
       await program.methods.withdraw(new anchor.BN(1))
           .accounts({
               movePool: movePoolAccount,
@@ -179,6 +243,63 @@ describe("swap_token", () => {
           puller.publicKey,
       );
       const newMoveBalance = pullerTokenAccount.amount;
+      const newBalanceState= (await program.account.state.fetch(stateAccount)).balance;
       assert.equal(1, newMoveBalance - oldMoveBalance);
+      assert.equal(1, oldBalanceState - newBalanceState);
+  })
+
+    it(`Withdraw when puller is not correct`, async () => {
+        const puller = anchor.web3.Keypair.generate();
+        await airdropSol(puller, provider.connection);
+        const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+        let pullerTokenAccount = await getOrCreateAssociatedTokenAccount(
+            provider.connection,
+            user,
+            mint,
+            puller.publicKey,
+        );
+        try {
+            await program.methods.withdraw(new anchor.BN(1))
+                .accounts({
+                    movePool: movePoolAccount,
+                    state: stateAccount,
+                    puller: puller.publicKey,
+                    pullerTokenAccount: pullerTokenAccount.address,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                })
+                .signers([puller])
+                .rpc();
+        } catch (e) {
+            assert.equal(e.error.errorMessage, "A raw constraint was violated");
+            assert.equal(e.error.origin, "puller");
+        }
+    })
+
+  it(`User withdraw when not enough move`, async () => {
+      const puller = user;
+      await airdropSol(puller, provider.connection);
+      const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+      let pullerTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          puller.publicKey,
+      );
+      try {
+          await program.methods.withdraw(new anchor.BN(1000000000))
+              .accounts({
+                  movePool: movePoolAccount,
+                  state: stateAccount,
+                  puller: puller.publicKey,
+                  pullerTokenAccount: pullerTokenAccount.address,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                  systemProgram: anchor.web3.SystemProgram.programId,
+              })
+              .signers([puller])
+              .rpc();
+      } catch (e) {
+          assert.equal("Not enough move", e.error.errorMessage);
+      }
   })
 });
