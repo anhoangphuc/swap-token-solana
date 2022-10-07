@@ -174,7 +174,10 @@ pub struct Swap<'info> {
     #[account(mut)]
     swapper: Signer<'info>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = puller.key() == state.user_puller,
+    )]
     /// CHECK:
     pub puller: AccountInfo<'info>,
 
