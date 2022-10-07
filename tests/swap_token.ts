@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { SwapToken } from "../target/types/swap_token";
-import {createMint, getOrCreateAssociatedTokenAccount, mintTo, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {createMint, getAccount, getOrCreateAssociatedTokenAccount, mintTo, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import {airdropSol, mintNewTokenForAccount} from "../utils";
 import base58 from "bs58";
 import * as assert from "assert";
@@ -119,6 +119,7 @@ describe("swap_token", () => {
           mint,
           swapper.publicKey,
       );
+      const oldSolBalance = await provider.connection.getBalance(movePoolAccount);
 
       await program.methods.swap()
           .accounts({
@@ -142,5 +143,8 @@ describe("swap_token", () => {
 
     const state = await program.account.state.fetch(stateAccount);
     assert.equal(state.balance, 1000000000 - 10);
+
+    const newSolBalance = await provider.connection.getBalance(movePoolAccount);
+    assert.equal(newSolBalance - oldSolBalance, 100);
   })
 });
