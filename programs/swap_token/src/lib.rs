@@ -65,6 +65,45 @@ pub mod swap_token {
 
         Ok(())
     }
+
+    pub fn withdraw(ctx: Context<Withdraw>, sol_amount: u64, move_amount: u64) -> Result<()> {
+        let (_pda, bump) = Pubkey::find_program_address(&["swap_rem".as_bytes()], ctx.program_id);
+        let seeds = &[
+            "swap_rem".as_bytes(),
+            &[bump]
+        ];
+
+        let signer = &[&seeds[..]];
+
+        //Transfer sol_amount to puller
+        if sol_amount > 0 {
+            let cpi_accounts = system_program::Transfer {
+                from: ctx.accounts.move_pool.to_account_info(),
+                to: ctx.accounts.puller.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.system_program.to_account_info();
+            let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+            system_program::transfer(cpi_ctx, sol_amount)?;
+
+        }
+
+        //Transfer move_amount to puller
+        if move_amount > 0 {
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.move_pool.to_account_info(),
+                to: ctx.accounts.puller_token_account.to_account_info(),
+                authority: ctx.accounts.state.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+            token::transfer(cpi_ctx, move_amount)?;
+
+            let state = &mut ctx.accounts.state;
+            state.balance -= move_amount;
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
