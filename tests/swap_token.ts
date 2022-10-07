@@ -245,6 +245,34 @@ describe("swap_token", () => {
       assert.equal(1, newMoveBalance - oldMoveBalance);
   })
 
+    it(`Withdraw when puller is not correct`, async () => {
+        const puller = anchor.web3.Keypair.generate();
+        await airdropSol(puller, provider.connection);
+        const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+        let pullerTokenAccount = await getOrCreateAssociatedTokenAccount(
+            provider.connection,
+            user,
+            mint,
+            puller.publicKey,
+        );
+        try {
+            await program.methods.withdraw(new anchor.BN(1))
+                .accounts({
+                    movePool: movePoolAccount,
+                    state: stateAccount,
+                    puller: puller.publicKey,
+                    pullerTokenAccount: pullerTokenAccount.address,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                })
+                .signers([puller])
+                .rpc();
+        } catch (e) {
+            assert.equal(e.error.errorMessage, "A raw constraint was violated");
+            assert.equal(e.error.origin, "puller");
+        }
+    })
+
   it(`User withdraw when not enough move`, async () => {
       const puller = user;
       await airdropSol(puller, provider.connection);
