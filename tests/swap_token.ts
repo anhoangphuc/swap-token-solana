@@ -139,6 +139,38 @@ describe("swap_token", () => {
       assert.equal(userStakeToken1.amount, 1000000000);
   })
 
+  it(`User swap when puller is not correct`, async () => {
+      const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+
+      const swapper = anchor.web3.Keypair.generate();
+      await airdropSol(swapper, provider.connection);
+      const swapperTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          swapper.publicKey,
+      );
+      const amount = 1000;
+
+      try {
+          await program.methods.swap(new anchor.BN(amount))
+              .accounts({
+                  movePool: movePoolAccount,
+                  state: stateAccount,
+                  swapper: swapper.publicKey,
+                  swapperTokenAccount: swapperTokenAccount.address,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                  systemProgram: anchor.web3.SystemProgram.programId,
+                  puller: swapper.publicKey,
+              })
+              .signers([swapper])
+              .rpc();
+      } catch (e) {
+          assert.equal(e.error.errorMessage, "A raw constraint was violated");
+          assert.equal(e.error.origin, "puller");
+      }
+  })
+
   it('User swap success', async () => {
       const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
 
