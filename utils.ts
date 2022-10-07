@@ -40,7 +40,6 @@ export async function mintNewTokenForAccount(
     connection: Connection,
     amount?: number,
 ) {
-    console.log(mint.toBase58());
     const tokenAccount = await getOrCreateAssociatedTokenAccount(
         connection,
         payer,
