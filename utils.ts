@@ -37,9 +37,9 @@ export async function mintNewTokenForAccount(
     payer: Keypair,
     mint: PublicKey,
     receiverPubkey: PublicKey,
-    connection: Connection
+    connection: Connection,
+    amount?: number,
 ) {
-    console.log(mint.toBase58());
     const tokenAccount = await getOrCreateAssociatedTokenAccount(
         connection,
         payer,
@@ -52,7 +52,7 @@ export async function mintNewTokenForAccount(
         mint,
         tokenAccount.address,
         payer,  //payer is mint authority too for our cases
-        1000000000,
+        amount ? amount: 1000000000,
     );
 }
 
