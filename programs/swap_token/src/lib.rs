@@ -33,7 +33,7 @@ pub mod swap_token {
     }
 
     pub fn swap(ctx: Context<Swap>, amount: u64) -> Result<()> {
-        let moveAmount = amount * 10;
+        let move_amount = amount * 10;
         //Transfer move from move_pool to swapper token account
         let (_pda, bump) = Pubkey::find_program_address(&["swap_rem".as_bytes()], ctx.program_id);
         let seeds = &[
@@ -48,12 +48,12 @@ pub mod swap_token {
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-        token::transfer(cpi_ctx, moveAmount)?;
+        token::transfer(cpi_ctx, move_amount)?;
 
 
         //Update balance of move token
         let state = &mut ctx.accounts.state;
-        state.balance -= moveAmount;
+        state.balance -= move_amount;
 
         let cpi_accounts = system_program::Transfer {
             from: ctx.accounts.swapper.to_account_info(),
@@ -146,6 +146,32 @@ pub struct Swap<'info> {
 
     #[account(mut)]
     swapper_token_account: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    #[account(
+    mut,
+    seeds = ["move_pool".as_bytes()],
+    bump,
+    )]
+    pub move_pool: Account<'info, TokenAccount>,
+
+    #[account(
+    mut,
+    seeds = ["swap_rem".as_bytes()],
+    bump,
+    )]
+    pub state: Account<'info, State>,
+
+    #[account(mut)]
+    puller: Signer<'info>,
+
+    #[account(mut)]
+    puller_token_account: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
