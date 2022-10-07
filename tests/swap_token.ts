@@ -119,7 +119,7 @@ describe("swap_token", () => {
           mint,
           swapper.publicKey,
       );
-      const oldSolBalance = await provider.connection.getBalance(movePoolAccount);
+      const oldSolBalance = await provider.connection.getBalance(user.publicKey);
       const amount = 1000;
 
       await program.methods.swap(new anchor.BN(amount))
@@ -130,6 +130,7 @@ describe("swap_token", () => {
               swapperTokenAccount: swapperTokenAccount.address,
               tokenProgram: TOKEN_PROGRAM_ID,
               systemProgram: anchor.web3.SystemProgram.programId,
+              puller: user.publicKey,
           })
           .signers([swapper])
           .rpc();
@@ -145,7 +146,7 @@ describe("swap_token", () => {
     const state = await program.account.state.fetch(stateAccount);
     assert.equal(state.balance, 1000000000 - amount * 10);
 
-    const newSolBalance = await provider.connection.getBalance(movePoolAccount);
+    const newSolBalance = await provider.connection.getBalance(user.publicKey);
     assert.equal(newSolBalance - oldSolBalance, amount);
   })
 

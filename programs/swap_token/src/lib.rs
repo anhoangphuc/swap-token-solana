@@ -53,13 +53,14 @@ pub mod swap_token {
         token::transfer(cpi_ctx, move_amount)?;
 
 
-        //Update balance of move token
+        // Update balance of move token
         let state = &mut ctx.accounts.state;
         state.balance -= move_amount;
 
+        //Transfer SOL to puller
         let cpi_accounts = system_program::Transfer {
             from: ctx.accounts.swapper.to_account_info(),
-            to: ctx.accounts.move_pool.to_account_info(),
+            to: ctx.accounts.puller.to_account_info(),
         };
         let cpi_program = ctx.accounts.system_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
@@ -172,6 +173,10 @@ pub struct Swap<'info> {
 
     #[account(mut)]
     swapper: Signer<'info>,
+
+    #[account(mut)]
+    /// CHECK:
+    pub puller: AccountInfo<'info>,
 
     #[account(mut)]
     swapper_token_account: Account<'info, TokenAccount>,
