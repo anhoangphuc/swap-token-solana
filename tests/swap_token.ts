@@ -6,7 +6,6 @@ import {airdropSol, mintNewTokenForAccount} from "../utils";
 import base58 from "bs58";
 import * as assert from "assert";
 import {PublicKey} from "@solana/web3.js";
-import {expect, use} from "chai";
 
 describe("swap_token", () => {
   const provider = anchor.AnchorProvider.local();
@@ -63,6 +62,38 @@ describe("swap_token", () => {
     assert.equal(balance, 0);
 
   });
+
+  it(`User swap when not enough move`, async () => {
+      const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
+
+      const swapper = anchor.web3.Keypair.generate();
+      await airdropSol(swapper, provider.connection);
+      const swapperTokenAccount = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          user,
+          mint,
+          swapper.publicKey,
+      );
+      const amount = 1000;
+
+      try {
+          await program.methods.swap(new anchor.BN(amount))
+              .accounts({
+                  movePool: movePoolAccount,
+                  state: stateAccount,
+                  swapper: swapper.publicKey,
+                  swapperTokenAccount: swapperTokenAccount.address,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                  systemProgram: anchor.web3.SystemProgram.programId,
+                  puller: user.publicKey,
+              })
+              .signers([swapper])
+              .rpc();
+      } catch (e) {
+          assert.equal("Not enough move", e.error.errorMessage);
+      }
+
+  })
 
   it(`User stake success`, async () => {
       const staker = anchor.web3.Keypair.generate();
