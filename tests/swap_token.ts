@@ -150,7 +150,7 @@ describe("swap_token", () => {
   })
 
   it(`Withdraw`, async () => {
-      const puller = anchor.web3.Keypair.generate();
+      const puller = user;
       await airdropSol(puller, provider.connection);
       const [mint, stateAccount, movePoolAccount] = [_mint, _stateAccount, _movePoolAccount];
       let pullerTokenAccount = await getOrCreateAssociatedTokenAccount(

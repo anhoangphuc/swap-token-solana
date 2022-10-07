@@ -196,7 +196,10 @@ pub struct Withdraw<'info> {
     )]
     pub state: Account<'info, State>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = puller.key() == state.user_puller,
+    )]
     puller: Signer<'info>,
 
     #[account(mut)]
