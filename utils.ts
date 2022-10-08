@@ -122,5 +122,5 @@ export function loadSwapProgram(network: string) {
 }
 
 export function loadMoveToken(network: string) {
-    return getContracts()[network]["MOVE"];
+    return new PublicKey(getContracts()[network]["MOVE"]);
 }
