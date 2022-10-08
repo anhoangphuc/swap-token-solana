@@ -25,14 +25,16 @@ export async function airdropSol(payer: Keypair, connection: Connection) {
         LAMPORTS_PER_SOL,
     );
 
-    const latestBLockhash = await  connection.getLatestBlockhash();
+    await confirmTransaction(connection, airdropSignature);
+}
 
-    await  connection.confirmTransaction({
-        blockhash: latestBLockhash.blockhash,
-        lastValidBlockHeight: latestBLockhash.lastValidBlockHeight,
-        signature: airdropSignature,
-    });
-    const balanceAccount = await connection.getBalance(payer.publicKey);
+export async function confirmTransaction(connection: Connection, tx: string) {
+    const latestBlockhash = await connection.getLatestBlockhash();
+    await connection.confirmTransaction({
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        signature: tx,
+    })
 }
 
 export async function mintNewTokenForAccount(
@@ -129,5 +131,5 @@ export function loadDefaultUser() {
     const id = JSON.parse(fs.readFileSync(path.join(process.env.ANCHOR_WALLET), "utf-8")) as number[];
     const seed = id.slice(0, 32);
     const keypair = Keypair.fromSeed(Uint8Array.from(seed));
-    console.log(keypair.publicKey.toBase58());
+    return keypair;
 }
