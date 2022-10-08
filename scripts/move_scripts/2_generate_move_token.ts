@@ -1,7 +1,7 @@
 import { createMint } from "@solana/spl-token";
 import { Connection, Keypair} from "@solana/web3.js";
 import dotenv from "dotenv";
-import {airdropSol, getConnection, getKeypair, saveContract} from "../utils";
+import {airdropSol, getConnection, getKeypair, saveContract} from "../../utils";
 
 dotenv.config();
 
