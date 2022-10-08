@@ -3,6 +3,7 @@
         "MOVE": "DRo3gvtX7jEECWi7PFwGPSweS6M5FTetNEE9VKEP6vPD"
     },
     "testnet": {
-        "MOVE": "F1Z1UJUBcD9RrAQxda3W5HQ4v8eGfcqexGE3oNrXnnPu"
+        "MOVE": "F1Z1UJUBcD9RrAQxda3W5HQ4v8eGfcqexGE3oNrXnnPu",
+        "SWAP": "HyLqP2saUKjQkesmGau9zwRgexPRbWxVq4dDU2KDgabe"
     }
 }
