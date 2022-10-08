@@ -56,6 +56,7 @@ export async function mintNewTokenForAccount(
         payer,  //payer is mint authority too for our cases
         amount ? amount: 1000000000,
     );
+    return tokenAccount;
 }
 
 export function getContracts() {
