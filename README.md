@@ -3,8 +3,8 @@ Contain scripts to generate accounts and generate new MOVE token.
 
 To run a script:
 
-``ts-node scripts/{X}``, with X is the name of script, example:
-``ts-node scripts/0_generate_5_accounts``
+``ts-node scripts/move_scripts/{X}``, with X is the name of script, example:
+``ts-node scripts/move_scripts/0_generate_5_accounts``
 
 We set network in file .env
 
