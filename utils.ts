@@ -117,11 +117,17 @@ export function loadSwapProgram(network: string) {
         fs.readFileSync(path.join(__dirname, "./target/idl/swap_token.json"), "utf-8")
     )
     const programId = getContracts()[network]["SWAP"];
-    const provider = anchor.AnchorProvider.env()
     const program = new anchor.Program(idl, programId);
     return program;
 }
 
 export function loadMoveToken(network: string) {
     return new PublicKey(getContracts()[network]["MOVE"]);
+}
+
+export function loadDefaultUser() {
+    const id = JSON.parse(fs.readFileSync(path.join(process.env.ANCHOR_WALLET), "utf-8")) as number[];
+    const seed = id.slice(0, 32);
+    const keypair = Keypair.fromSeed(Uint8Array.from(seed));
+    console.log(keypair.publicKey.toBase58());
 }

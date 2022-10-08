@@ -1,7 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import {getKeypair, loadMoveToken, mintNewTokenForAccount} from "../../utils";
 import dotenv from "dotenv";
-import {getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount} from "@solana/spl-token";
 dotenv.config();
 
 (async function main () {
