@@ -72,14 +72,14 @@ export async function saveContract(network: string, contract: string, address: s
     const addresses = getContracts();
     addresses[network] = addresses[network] || {};
     addresses[network][contract] = address;
-    fs.writeFileSync(path.join(__dirname, '../data/contract_addresses.json'),
+    fs.writeFileSync(path.join(__dirname, 'data/contract_addresses.json'),
         JSON.stringify(addresses, null, "    "));
 }
 
 export function getAccounts(index?: number) {
     let json;
     try {
-        json = fs.readFileSync(path.join(__dirname, '../data/accounts.json'), 'utf-8') || '{}';
+        json = fs.readFileSync(path.join(__dirname, 'data/accounts.json'), 'utf-8') || '{}';
     } catch {
         json = '{}';
     }
@@ -103,7 +103,7 @@ export async function saveAccount(keypair: Keypair, index: number) {
     accounts[accountIndex] = {};
     accounts[accountIndex]['secretKey'] = bs58.encode(keypair.secretKey);
     accounts[accountIndex]['pubKey'] = keypair.publicKey.toBase58();
-    fs.writeFileSync(path.join(__dirname, '../data/accounts.json'),
+    fs.writeFileSync(path.join(__dirname, 'data/accounts.json'),
         JSON.stringify(accounts, null, "    "));
 }
 
