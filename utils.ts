@@ -1,8 +1,10 @@
 import {clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey} from "@solana/web3.js";
+import * as anchor from "@project-serum/anchor";
 import fs from "fs";
 import path from "path";
 import bs58 from "bs58";
-import { getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
+import {createThawAccountInstruction, getAccount, getOrCreateAssociatedTokenAccount, mintTo} from "@solana/spl-token";
+import {Program, Wallet} from "@project-serum/anchor";
 
 export async function getConnection(network: string): Promise<Connection> {
     const commitment = 'confirmed';
@@ -59,7 +61,7 @@ export async function mintNewTokenForAccount(
 export function getContracts() {
     let json;
     try {
-        json = fs.readFileSync(path.join(__dirname, '../data/contract_addresses.json'), 'utf-8') || '{}';
+        json = fs.readFileSync(path.join(__dirname, 'data/contract_addresses.json'), 'utf-8') || '{}';
     } catch {
         json = '{}';
     }
@@ -107,4 +109,18 @@ export async function saveAccount(keypair: Keypair, index: number) {
 
 export function sleep(ms: number) {
     return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
+export function loadSwapProgram(network: string) {
+    const idl = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "./target/idl/swap_token.json"), "utf-8")
+    )
+    const programId = getContracts()[network]["SWAP"];
+    const provider = anchor.AnchorProvider.env()
+    const program = new anchor.Program(idl, programId);
+    return program;
+}
+
+export function loadMoveToken(network: string) {
+    return getContracts()[network]["MOVE"];
 }
