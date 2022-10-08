@@ -1,4 +1,4 @@
-import {getConnection, getContracts, getKeypair, mintNewTokenForAccount, sleep} from "../utils";
+import {getConnection, getContracts, getKeypair, mintNewTokenForAccount, sleep} from "../../utils";
 import dotenv from "dotenv";
 import {Connection, PublicKey} from "@solana/web3.js";
 
